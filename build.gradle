@@ -1,0 +1,73 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.micronaut.application") version "3.3.2"
+    // this one is not added by default
+    id("com.google.cloud.tools.appengine") version '2.4.2'
+}
+
+version = "0.1"
+group = "com.improving"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // this one is not added by default
+    annotationProcessor("io.micronaut:micronaut-graal")
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-jackson-databind")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut:micronaut-validation")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    compileOnly("org.graalvm.nativeimage:svm")
+    // this one is not added by default
+    nativeImageCompileOnly("com.google.cloud:native-image-support:0.14.1")
+    // this one is not added by default (needs to be added after Lombok if Lombok is used)
+    annotationProcessor("io.micronaut:micronaut-inject-java")
+
+}
+
+application {
+    mainClass.set("com.improving.Application")
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}
+
+graalvmNative.toolchainDetection = false
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.improving.*")
+    }
+}
+
+// add this in for deploying the correct artifact to App Engine
+appengine {
+    // this one is if you want to deploy a jar
+    // stage.artifact = "${buildDir}/libs/${project.name}-${project.version}-all.jar"
+    // this one for a native executable
+    stage.artifact = "${buildDir}/native/nativeCompile/native"
+    deploy {
+        projectId = "YOUR_PROJECT_ID_HERE"
+        version = "1"
+    }
+}
+
+// add this in for additional settings related to Graal native
+graalvmNative {
+    binaries{
+        main {
+            imageName.set('native')
+            buildArgs.addAll(["--verbose", "--static", "--libc=musl"])
+        }
+    }
+}
+
+

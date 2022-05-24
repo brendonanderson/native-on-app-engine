@@ -1,0 +1,11 @@
+micronaut:
+  application:
+    name: nativeOnAppEngine
+netty:
+  default:
+    allocator:
+      max-order: 3
+
+app:
+  greeting: base
+  basetext: Hello World
